@@ -39,7 +39,7 @@ function App() {
     isInWatchlist 
   } = useStore();
 
-  // Navigation and Query States
+  // Navigation and Query States - Updated for Vercel deploy
   const [activeTab, setActiveTab] = useState<'home' | 'movies' | 'games' | 'videos' | 'dashboard'>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All');
