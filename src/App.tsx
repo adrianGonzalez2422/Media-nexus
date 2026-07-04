@@ -1,24 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Search, 
-  Clapperboard, 
-  Bookmark, 
-  Heart, 
-  Star, 
-  Sun, 
-  Moon, 
-  X, 
-  Play, 
-  Check, 
-  Compass, 
-  Info,
-  Home,
-  Gamepad2,
-  Tv,
-  LayoutDashboard,
-  TrendingUp,
-  RefreshCw
-} from 'lucide-react';
+import { Clapperboard, Bookmark, Heart, Star, Play, Check, Compass, Info, Gamepad2, Tv, TrendingUp, RefreshCw, X } from 'lucide-react';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import Toasts from './components/Toasts';
 import { useStore, type MediaItem } from './store/useStore';
 import { mediaItems, type UnifiedItem } from './data';
 import { useTMDBTrending, useTMDBSearch, useTMDBSync } from './hooks/useTMDB';
@@ -28,15 +12,15 @@ import { getBestTrailerUrl } from './services/tmdb';
 import './App.css';
 
 function App() {
-  const { 
-    favorites, 
-    watchlist, 
-    addFavorite, 
-    removeFavorite, 
-    addWatchlist, 
-    removeWatchlist, 
-    isFavorite, 
-    isInWatchlist 
+  const {
+    favorites,
+    watchlist,
+    addFavorite,
+    removeFavorite,
+    addWatchlist,
+    removeWatchlist,
+    isFavorite,
+    isInWatchlist
   } = useStore();
 
   // Navigation and Query States - Updated for Vercel deploy
@@ -242,12 +226,12 @@ function App() {
     // Reset modal state first
     setSelectedItem(item);
     setModalTrailerUrl(''); // Clear previous video to force reload
-    
+
     // Small delay to ensure the iframe reloads with new URL
     setTimeout(() => {
       setModalTrailerUrl(item.trailerUrl);
     }, 50);
-    
+
     if (item.type === 'movie' && item.tmdbId && !item.trailerUrl) {
       const url = await getBestTrailerUrl(item.tmdbId);
       if (url) setModalTrailerUrl(url);
@@ -306,136 +290,29 @@ function App() {
 
   // Counts for Dashboard
   const movieCount = tmdbMovies.length || mediaItems.filter(i => i.type === 'movie').length;
-  const gameCount  = rawgGames.length || mediaItems.filter(i => i.type === 'game').length;
+  const gameCount = rawgGames.length || mediaItems.filter(i => i.type === 'game').length;
   const videoCount = youtubeVideos.length || mediaItems.filter(i => i.type === 'video').length;
 
   return (
     <div className={`app-layout ${theme}`}>
-      {/* Toast Notifications */}
-      <div className="toast-container">
-        {toasts.map((t) => (
-          <div key={t.id} className="toast" style={{ borderLeftColor: t.type === 'success' ? 'var(--color-horror)' : 'var(--primary)' }}>
-            {t.type === 'success' ? <Check size={18} color="var(--color-horror)" /> : <Info size={18} color="var(--primary)" />}
-            <span>{t.message}</span>
-          </div>
-        ))}
-      </div>
+      <Toasts toasts={toasts} />
 
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <a href="#home" className="sidebar-header" onClick={() => { setActiveTab('home'); setSelectedGenre('All'); }}>
-          <Clapperboard className="sidebar-logo-icon" size={28} />
-          <span>Media Nexus</span>
-        </a>
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} setSelectedGenre={setSelectedGenre} setSearchQuery={setSearchQuery} />
 
-        <nav className="sidebar-nav">
-          <button 
-            className={`sidebar-link ${activeTab === 'home' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('home'); setSelectedGenre('All'); setSearchQuery(''); }}
-          >
-            <Home size={18} />
-            <span>Home</span>
-          </button>
-          
-          <button 
-            className={`sidebar-link ${activeTab === 'movies' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('movies'); setSelectedGenre('All'); setSearchQuery(''); }}
-          >
-            <Clapperboard size={18} />
-            <span>Movies</span>
-          </button>
-
-          <button 
-            className={`sidebar-link ${activeTab === 'games' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('games'); setSelectedGenre('All'); setSearchQuery(''); }}
-          >
-            <Gamepad2 size={18} />
-            <span>Games</span>
-          </button>
-
-          <button 
-            className={`sidebar-link ${activeTab === 'videos' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('videos'); setSelectedGenre('All'); setSearchQuery(''); }}
-          >
-            <Tv size={18} />
-            <span>Videos</span>
-          </button>
-
-          <button 
-            className={`sidebar-link ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('dashboard'); setSelectedGenre('All'); setSearchQuery(''); }}
-          >
-            <LayoutDashboard size={18} />
-            <span>Dashboard</span>
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="profile-card">
-            <div className="profile-avatar">U</div>
-            <div className="profile-info">
-              <span className="profile-name">Adrian</span>
-              <span className="profile-role">Premium Member</span>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Workspace */}
       <div className="main-workspace">
-        {/* Top Header */}
-        <header className="top-header">
-          <div className="header-title">
-            {activeTab === 'home' && 'Discovery Feed'}
-            {activeTab === 'movies' && 'Movies (TMDB)'}
-            {activeTab === 'games' && 'Games (RAWG)'}
-            {activeTab === 'videos' && 'Trailers (YouTube)'}
-            {activeTab === 'dashboard' && 'Media Dashboard'}
-          </div>
-
-          {/* Search Input */}
-          {activeTab !== 'dashboard' && (
-            <div className="search-container">
-              <input
-                type="text"
-                className="search-field"
-                placeholder={`Search ${activeTab === 'home' ? 'movies, games, videos' : activeTab}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Search className="search-field-icon" size={16} />
-              {searchQuery && (
-                <button className="search-field-clear" onClick={() => setSearchQuery('')}>
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Action Row */}
-          <div className="header-actions">
-            <button 
-              className="theme-switch-btn" 
-              onClick={toggleTheme} 
-              title={`Toggle Theme`}
-              aria-label="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          </div>
-        </header>
+        <Header activeTab={activeTab} searchQuery={searchQuery} setSearchQuery={setSearchQuery} theme={theme} toggleTheme={toggleTheme} />
 
         {/* Content Body */}
         <main className="page-container">
-          
+
           {/* HOME VIEW */}
           {activeTab === 'home' && (
             <>
               {/* Highlight Banner */}
               {!searchQuery && selectedGenre === 'All' && spotlightItem && (
-                <div 
-                  className="hero-banner" 
-                  style={{ 
+                <div
+                  className="hero-banner"
+                  style={{
                     backgroundImage: `linear-gradient(rgba(5, 5, 10, 0.7), rgba(5, 5, 10, 0.85)), url(${spotlightItem.backdropUrl})`,
                     backgroundPosition: 'center 25%',
                     backgroundSize: 'cover'
@@ -520,14 +397,14 @@ function App() {
                     const isFav = isFavorite(item.id);
                     const isWatch = isInWatchlist(item.id);
                     const tColor = getTypeColor(item.type);
-                    
+
                     return (
-                      <div 
-                        key={item.id} 
+                      <div
+                        key={item.id}
                         className="movie-card"
-                        style={{ 
-                          '--accent-color': tColor, 
-                          '--accent-glow': tColor + '33' 
+                        style={{
+                          '--accent-color': tColor,
+                          '--accent-glow': tColor + '33'
                         } as React.CSSProperties}
                         onClick={() => openItemModal(item)}
                       >
@@ -544,7 +421,7 @@ function App() {
 
                         {/* Card Hover Action Buttons */}
                         <div className="movie-card-actions">
-                          <button 
+                          <button
                             className={`card-action-icon-btn ${isFav ? 'active-fav' : ''}`}
                             onClick={(e) => handleFavoriteToggle(e, item)}
                             title={isFav ? "Remove from Favorites" : "Add to Favorites"}
@@ -552,7 +429,7 @@ function App() {
                           >
                             <Heart size={14} fill={isFav ? "currentColor" : "none"} />
                           </button>
-                          <button 
+                          <button
                             className={`card-action-icon-btn ${isWatch ? 'active-watch' : ''}`}
                             onClick={(e) => handleWatchlistToggle(e, item)}
                             title={isWatch ? "Remove from Watchlist" : "Add to Watchlist"}
@@ -576,7 +453,7 @@ function App() {
                         <div className="movie-card-info">
                           <h3 className="movie-card-title">{item.title}</h3>
                           <p className="movie-card-desc">{item.description}</p>
-                          
+
                           {item.type === 'game' && item.platforms && (
                             <div className="platform-row">
                               {item.platforms.map(p => (
@@ -638,8 +515,8 @@ function App() {
 
               <div className="mixed-feed-grid">
                 {filteredItems.map((movie) => (
-                  <div 
-                    key={movie.id} 
+                  <div
+                    key={movie.id}
                     className="movie-card"
                     style={{ '--accent-color': 'var(--color-scifi)', '--accent-glow': 'rgba(6, 182, 212, 0.2)' } as React.CSSProperties}
                     onClick={() => setSelectedItem(movie)}
@@ -652,7 +529,7 @@ function App() {
                     <div className="movie-poster-wrapper">
                       <img src={movie.imageUrl} alt={movie.title} className="movie-poster" />
                       <div className="movie-card-overlay">
-                        <button className="quick-action-btn"><Play size={14} fill="currentColor"/> Open Details</button>
+                        <button className="quick-action-btn"><Play size={14} fill="currentColor" /> Open Details</button>
                       </div>
                     </div>
 
@@ -690,8 +567,8 @@ function App() {
 
               <div className="mixed-feed-grid">
                 {filteredItems.map((game) => (
-                  <div 
-                    key={game.id} 
+                  <div
+                    key={game.id}
                     className="movie-card"
                     style={{ '--accent-color': 'var(--color-drama)', '--accent-glow': 'rgba(168, 85, 247, 0.2)' } as React.CSSProperties}
                     onClick={() => game.trailerUrl ? openItemModal(game) : showToast(`${game.title} - No trailer available`, 'info')}
@@ -712,7 +589,7 @@ function App() {
                             showToast(`${game.title} - No trailer available`, 'info');
                           }
                         }}>
-                          {game.trailerUrl ? <><Play size={14} fill="currentColor"/> Watch Trailer</> : <><Info size={14} fill="currentColor"/> Game Details</>}
+                          {game.trailerUrl ? <><Play size={14} fill="currentColor" /> Watch Trailer</> : <><Info size={14} fill="currentColor" /> Game Details</>}
                         </button>
                       </div>
                     </div>
@@ -720,7 +597,7 @@ function App() {
                     <div className="movie-card-info">
                       <h3 className="movie-card-title">{game.title}</h3>
                       <p className="game-card-desc">{game.description}</p>
-                      
+
                       {game.platforms && (
                         <div className="platform-row">
                           {game.platforms.map(p => <span key={p} className="platform-chip">{p}</span>)}
@@ -738,8 +615,8 @@ function App() {
           {activeTab === 'videos' && (
             <div className="mixed-feed-grid">
               {filteredItems.map((vid) => (
-                <div 
-                  key={vid.id} 
+                <div
+                  key={vid.id}
                   className="movie-card"
                   style={{ '--accent-color': 'var(--color-action)', '--accent-glow': 'rgba(244, 63, 94, 0.2)' } as React.CSSProperties}
                   onClick={() => setSelectedItem(vid)}
@@ -779,7 +656,7 @@ function App() {
                   <span className="stat-number">{movieCount}</span>
                   <span className="stat-label">Movies Cataloged</span>
                 </div>
-                
+
                 <div className="bento-stat-card">
                   <div className="stat-icon-wrapper" style={{ color: 'var(--color-drama)', background: 'rgba(168, 85, 247, 0.1)' }}>
                     <Gamepad2 size={20} />
@@ -812,7 +689,7 @@ function App() {
                     <h3 style={{ fontSize: '1.15rem', fontFamily: 'var(--font-display)', fontWeight: 800 }}>External API Data Sync</h3>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Fetch metadata real-time updates from TMDB (Movies), RAWG (Games), and YouTube (Trailers).</p>
                   </div>
-                  <button 
+                  <button
                     className="sync-btn"
                     onClick={handleSyncNow}
                     disabled={tmdbSyncing}
@@ -836,7 +713,7 @@ function App() {
 
               {/* Grid with Charts and Activity */}
               <div className="dashboard-grid">
-                
+
                 {/* SVG Chart 1 */}
                 <div className="chart-card">
                   <h3 className="chart-title">Catalog Distribution (Unified Items)</h3>
@@ -880,9 +757,9 @@ function App() {
                               <div style={{ fontSize: '0.7rem', color: getTypeColor(item.type) }} className="info-label">{item.type}</div>
                             </div>
                           </div>
-                          <button 
-                            className="card-action-icon-btn active-watch" 
-                            style={{ width: '1.75rem', height: '1.75rem' }} 
+                          <button
+                            className="card-action-icon-btn active-watch"
+                            style={{ width: '1.75rem', height: '1.75rem' }}
                             onClick={(e) => { e.stopPropagation(); removeWatchlist(item.id); showToast(`Removed "${item.title}"`, 'info'); }}
                             aria-label="Remove from Watchlist"
                           >
@@ -969,16 +846,16 @@ function App() {
 
               {/* Actions row */}
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <button 
-                  className="quick-action-btn" 
+                <button
+                  className="quick-action-btn"
                   style={{ width: 'auto', padding: '0.65rem 1.25rem', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
                   onClick={(e) => handleWatchlistToggle(e, selectedItem)}
                 >
                   {isInWatchlist(selectedItem.id) ? <Check size={16} /> : <Bookmark size={16} />}
                   {isInWatchlist(selectedItem.id) ? 'In Watchlist' : 'Add to Watchlist'}
                 </button>
-                <button 
-                  className="quick-action-btn" 
+                <button
+                  className="quick-action-btn"
                   style={{ width: 'auto', padding: '0.65rem 1.25rem', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
                   onClick={(e) => handleFavoriteToggle(e, selectedItem)}
                 >
