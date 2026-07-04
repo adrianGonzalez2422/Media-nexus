@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useStore, type MediaItem } from './store/useStore';
 import { mediaItems, type UnifiedItem } from './data';
-import { useTMDBTrending, useTMDBSearch, useTMDBMovieDetail, useTMDBSync } from './hooks/useTMDB';
+import { useTMDBTrending, useTMDBSearch, useTMDBSync } from './hooks/useTMDB';
 import { useRAWGTrending, useRAWGSearch } from './hooks/useRAWG';
 import { useYouTubeTrending, useYouTubeSearch } from './hooks/useYouTube';
 import { getBestTrailerUrl } from './services/tmdb';
@@ -68,9 +68,6 @@ function App() {
     (activeTab === 'home' || activeTab === 'movies') ? searchQuery : ''
   );
   const { sync: syncTMDB, syncing: tmdbSyncing, lastSynced, syncedCount } = useTMDBSync();
-  const { detail: modalDetail } = useTMDBMovieDetail(
-    selectedItem?.type === 'movie' ? selectedItem.tmdbId : undefined
-  );
 
   // Real RAWG data hooks
   const staticGames = mediaItems.filter(i => i.type === 'game');
@@ -88,7 +85,6 @@ function App() {
 
   // Sync progress UI state (shown while Dashboard sync runs)
   const [syncProgress, setSyncProgress] = useState(0);
-  const [syncedItems, setSyncedItems] = useState<UnifiedItem[]>([]);
 
   // Toast State
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'info' }[]>([]);
@@ -227,7 +223,6 @@ function App() {
 
     try {
       const items = await syncTMDB();
-      setSyncedItems(items);
       await fillTo(100, 400);
       showToast(`✓ ${items.length} movies synced from TMDB`, 'success');
     } catch {
